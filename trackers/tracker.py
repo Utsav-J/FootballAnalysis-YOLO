@@ -1,7 +1,9 @@
+import cv2 as cv
 import os
 from ultralytics import YOLO
 import supervision as sv
 import pickle
+from utils import get_width_of_bbox, get_centre_of_bbox
 
 class Tracker:
     def __init__(self, model_path):
@@ -27,7 +29,7 @@ class Tracker:
 
         tracks = {
             'players': [],
-            'referee': [],
+            'referees': [],
             'ball': []
         }
 
@@ -65,7 +67,7 @@ class Tracker:
                 # 5 contains the data dictionary
 
             tracks['players'].append({})
-            tracks['referee'].append({})
+            tracks['referees'].append({})
             tracks['ball'].append({})
             
             for frame_detection in detection_with_tracks:
@@ -77,7 +79,7 @@ class Tracker:
                     tracks['players'][frame_num][track_id] = {"bbox":bbox}
 
                 if class_id == class_names_inversed['referee']:
-                    tracks['referee'][frame_num][track_id] = {"bbox":bbox}
+                    tracks['referees'][frame_num][track_id] = {"bbox":bbox}
 
             for frame_detection in supervision_detection:
                 bbox = frame_detection[0].tolist()
@@ -93,3 +95,35 @@ class Tracker:
 
         return tracks # a dictionary of list of dictionaries
     
+    def draw_ellipse(self, frame, bbox, color, track_id):
+        y2 = int(bbox[3])
+        x_center, y_center = get_centre_of_bbox()
+        width = get_width_of_bbox()
+        
+        cv.ellipse(frame,
+                   (x_center,y2), 
+                   axes = (int(width), int(0.35*width)),
+                   angle=0,
+                   startAngle=45,
+                   endAngle=235,
+                   color=color,
+                   thickness=2,
+                   lineType= cv.LINE_4
+                   )
+        return frame
+        
+
+    def draw_annotations(self,video_frames, tracks):
+        output_video_frames = []
+
+        for frame_num,frame in enumerate(video_frames):     #~ loop thru the frames
+            frame_copy = frame.copy() # so that we dont draw on the original frames
+            player_dict = tracks['players'][frame_num]
+            ball_dict = tracks["ball"][frame_num]
+            referee_dict = tracks["referees"][frame_num]
+
+            for track_id, player in player_dict.items():    #~ loop thru each tracker in the frame
+                frame_copy = self.draw_ellipse(frame,player["bbox"],(0,0,255),track_id)
+            output_video_frames.append(frame_copy)
+
+        return output_video_frames
