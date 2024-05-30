@@ -160,7 +160,8 @@ class Tracker:
             referee_dict = tracks["referees"][frame_num]
 
             for track_id, player in player_dict.items():    #~ loop thru each player tracker in the frame
-                frame_copy = self.draw_ellipse(frame,player["bbox"],(0,0,255),track_id)
+                player_color = player.get('team_color',(0,0,255))
+                frame_copy = self.draw_ellipse(frame,player["bbox"],player_color,track_id)
 
             for _, referee in referee_dict.items():    #~ loop thru each referee tracker in the frame
                 frame_copy = self.draw_ellipse(frame,referee["bbox"],(255,0,0))
