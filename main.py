@@ -7,6 +7,8 @@ def main():
     video_frames = read_video("input_videos/input.mp4")
     tracker = Tracker(model_path='models/best.pt')
     tracks = tracker.get_object_tracks(video_frames, read_from_stub=True, stub_path="stubs/tracks_stubs.pkl")
+    #Interpolate ball positions
+    tracks['ball'] = tracker.interpolate_ball(tracks['ball'])
     #save the cropped iamge of the player
 
     # for track_id,player in tracks['players'][0].items():

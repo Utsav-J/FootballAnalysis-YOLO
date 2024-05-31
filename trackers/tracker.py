@@ -5,6 +5,7 @@ import supervision as sv
 import pickle
 from utils import get_width_of_bbox, get_centre_of_bbox
 import numpy as np
+import pandas as pd
 
 
 class Tracker:
@@ -171,3 +172,21 @@ class Tracker:
             output_video_frames.append(frame_copy)
 
         return output_video_frames
+
+    def interpolate_ball(self, ball_positions):
+        # get the bbox of the first track id and make an array of it
+        # if not found the track no.1, return {},  if not found the bbox subsequently return []
+        ball_positions = [x.get(1,{}).get('bbox',[]) for x in ball_positions]
+
+        # convert the array into a pandas dataframe
+        df = pd.DataFrame(ball_positions, columns=['x1','y1','x2','y2'])
+        
+        # interpolate the missing values
+        df = df.interpolate()
+        # backfilling can be done for the edge cases
+        df = df.bfill()
+
+        # make a dictionary of 1:bbox:[] for all the frames of the ball positions
+        interpolated_positions = [{1:{'bbox':x}} for x in df.to_numpy().tolist()]
+        # return the data in the aforementioned original format 
+        return interpolated_positions
