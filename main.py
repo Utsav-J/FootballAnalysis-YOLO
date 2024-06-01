@@ -3,6 +3,8 @@ from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAsgn
 from trackers import Tracker
 import cv2 as cv
+import numpy as np
+
 
 
 def main():
@@ -33,17 +35,23 @@ def main():
 
     #Assign ball possession to current player
     player_ball_assigner = PlayerBallAsgn()
+    team_ball_control = []
     for frame_num, player_track in enumerate(tracks['players']):
         ball_bbox = tracks['ball'][frame_num][1]['bbox']
         assigned_player = player_ball_assigner.assign_ball_to_player(ball_positions=ball_bbox, player_positions=player_track)
 
         if assigned_player != -1:
             tracks['players'][frame_num][assigned_player]['has_ball'] = True
-            
+            team_ball_control.append(tracks['players'][frame_num][assigned_player]['team'])
+        else:
+            # else we add the last person that had the ball 
+            # this case is triggered when ball in mid-pass
+            team_ball_control.append(team_ball_control[-1])
+    team_ball_control = np.array(team_ball_control)
 
 
     # draw output and object tracks
-    output_video_frames = tracker.draw_annotations(video_frames=video_frames, tracks=tracks)
+    output_video_frames = tracker.draw_annotations(video_frames=video_frames, tracks=tracks, team_ball_control = team_ball_control)
 
                                     
     

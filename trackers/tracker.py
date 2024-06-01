@@ -151,7 +151,26 @@ class Tracker:
 
         return frame
 
-    def draw_annotations(self,video_frames, tracks):
+    def draw_team_ball_control(self, frame, frame_num, team_ball_control):
+        #draw semi transparent rectangle
+        overlay = frame.copy()
+        cv.rectangle(overlay,(1350,850),(1900,970),(255,255,255),-1)
+        transparency = 0.4
+        cv.addWeighted(overlay, transparency,frame,1-transparency,0,frame)
+
+
+        team_ball_control_till_current_frame = team_ball_control[:frame_num+1]
+        #get the number of times each team has the ball
+        team1_posession = team_ball_control_till_current_frame[team_ball_control_till_current_frame==1].shape[0]
+        team2_posession = team_ball_control_till_current_frame[team_ball_control_till_current_frame==2].shape[0]
+        team1 = (team1_posession)/(team1_posession+team2_posession)
+        team2 = (team2_posession)/(team1_posession+team2_posession)
+        cv.putText(frame, f"Team 1 Ball Posession:{team1*100:.2f}%", (1400,900),cv.FONT_HERSHEY_SIMPLEX,1,(0,0,0),3)
+        cv.putText(frame, f"Team 2 Ball Posession:{team2*100:.2f}%", (1400,950),cv.FONT_HERSHEY_SIMPLEX,1,(0,0,0),3)
+
+        return frame
+
+    def draw_annotations(self,video_frames, tracks, team_ball_control):
         output_video_frames = []
 
         for frame_num,frame in enumerate(video_frames):     #~ loop thru the frames
@@ -167,11 +186,17 @@ class Tracker:
                 if player.get('has_ball', False):
                     self.draw_triangle(frame_copy, player['bbox'],(255,0,0))
 
+            #draw the referee markings
             for _, referee in referee_dict.items():    #~ loop thru each referee tracker in the frame
                 frame_copy = self.draw_ellipse(frame,referee["bbox"],(255,0,0))
 
+            #draw the ball pointer
             for _,ball in ball_dict.items():
                 frame_copy = self.draw_triangle(frame, ball["bbox"], (0,255,0) , _)
+            
+            #draw team ball control
+            frame_copy = self.draw_team_ball_control(frame_copy,frame_num,team_ball_control)
+
             output_video_frames.append(frame_copy)
 
         return output_video_frames
