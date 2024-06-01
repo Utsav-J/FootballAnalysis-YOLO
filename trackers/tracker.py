@@ -164,6 +164,9 @@ class Tracker:
                 player_color = player.get('team_color',(0,0,255))
                 frame_copy = self.draw_ellipse(frame,player["bbox"],player_color,track_id)
 
+                if player.get('has_ball', False):
+                    self.draw_triangle(frame_copy, player['bbox'],(255,0,0))
+
             for _, referee in referee_dict.items():    #~ loop thru each referee tracker in the frame
                 frame_copy = self.draw_ellipse(frame,referee["bbox"],(255,0,0))
 
