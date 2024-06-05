@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import os
 sys.path.append('../')
-from utils import measure_distance, measure_xy_distance
+from utils import measure_distance, measure_xy_distance, get_centre_of_bbox
 
 class CameraMovementEstimator:
     def __init__(self, frame):
@@ -29,6 +29,15 @@ class CameraMovementEstimator:
             criteria = ( cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03 )
         )
 
+    def add_adjust_positions_to_tracks(self,tracks, camera_movement_per_frame):
+        for object, object_tracks in tracks.items():
+            for frame_num, track in enumerate(object_tracks):
+                for track_id, track_info in track.items():
+                    position = track_info['position']
+                    camera_movement = camera_movement_per_frame[frame_num]
+                    position_adjusted = (position[0]-camera_movement[0],position[1]-camera_movement[1])
+                    tracks[object][frame_num][track_id]['position_adjusted'] = position_adjusted
+
     def get_camera_movement(self, frames,read_from_stubs = False, stub_path = None):
         #Read the stub
         if read_from_stubs and stub_path is not None and os.path.exists(stub_path):
@@ -52,6 +61,7 @@ class CameraMovementEstimator:
                 distance = measure_distance(new_features_point, old_features_point)
 
                 if distance > max_distance:
+                    max_distance = distance
                     camera_movement_x, camera_movement_y = measure_xy_distance(new_features_point, old_features_point)
             
             if max_distance > self.minimum_distance_moved:

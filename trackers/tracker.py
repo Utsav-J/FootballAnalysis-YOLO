@@ -3,7 +3,7 @@ import os
 from ultralytics import YOLO
 import supervision as sv
 import pickle
-from utils import get_width_of_bbox, get_centre_of_bbox
+from utils import get_width_of_bbox, get_centre_of_bbox, get_foot_positions
 import numpy as np
 import pandas as pd
 
@@ -200,6 +200,17 @@ class Tracker:
             output_video_frames.append(frame_copy)
 
         return output_video_frames
+
+    def add_positions_to_tracks(self,tracks):
+        for object, object_tracks in tracks.items():
+            for frame_num, track in enumerate(object_tracks):
+                for track_id, track_info in track.items():
+                    bbox = track_info['bbox']
+                    if object == 'ball':
+                        position = get_centre_of_bbox(bbox)
+                    else:
+                        position = get_foot_positions(bbox)
+                    tracks[object][frame_num][track_id]['position'] = position
 
     def interpolate_ball(self, ball_positions):
         # get the bbox of the first track id and make an array of it

@@ -5,19 +5,23 @@ import numpy as np
 from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAsgn
 from camera_movement_estimator import CameraMovementEstimator
-
+from view_transformer import ViewTransformer
 
 
 def main():
     video_frames = read_video("input_videos/input.mp4")
     tracker = Tracker(model_path='models/best.pt')
     tracks = tracker.get_object_tracks(video_frames, read_from_stub=True, stub_path="stubs/tracks_stubs.pkl")
+    #get object positions
+    tracker.add_positions_to_tracks(tracks)
+
     camera_movement_estimator = CameraMovementEstimator(frame=video_frames[0])
     camera_movement_per_frame = camera_movement_estimator.get_camera_movement(video_frames, 
                                                                               read_from_stubs=True,
                                                                               stub_path='stubs/camera_movement_stub.pkl')
-
-    #Interpolate ball positions
+    view_transformer = ViewTransformer()
+    view_transformer.add_transformed_positions_to_tracks(tracks=tracks)
+    # Interpolate ball positions
     tracks['ball'] = tracker.interpolate_ball(tracks['ball'])
     #save the cropped iamge of the player
     team_assigner = TeamAssigner()

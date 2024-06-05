@@ -13,3 +13,7 @@ def measure_xy_distance(new,old):
     x = old[0] - new[0]
     y = old[1] - new[1]
     return x,y
+
+def get_foot_positions(bbox):
+    x1,y1,x2,y2 = bbox
+    return int((x1+x2)/2),int((y1+y2)/2) 
