@@ -5,7 +5,7 @@ import numpy as np
 from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAsgn
 from camera_movement_estimator import CameraMovementEstimator
-from view_transformer import ViewTransformer
+# from view_transformer import ViewTransformer
 
 
 def main():
@@ -19,8 +19,10 @@ def main():
     camera_movement_per_frame = camera_movement_estimator.get_camera_movement(video_frames, 
                                                                               read_from_stubs=True,
                                                                               stub_path='stubs/camera_movement_stub.pkl')
-    view_transformer = ViewTransformer()
-    view_transformer.add_transformed_positions_to_tracks(tracks=tracks)
+    camera_movement_estimator.add_adjust_positions_to_tracks(tracks, camera_movement_per_frame)
+    
+    # view_transformer = ViewTransformer()
+    # view_transformer.add_transformed_positions_to_tracks(tracks=tracks)
     # Interpolate ball positions
     tracks['ball'] = tracker.interpolate_ball(tracks['ball'])
     #save the cropped iamge of the player
